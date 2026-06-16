@@ -327,23 +327,21 @@ flowchart LR
 
 ### 서버 PC
 
+```
 firebase-admin
-
 flask
-
 werkzeug
+```
 
 ### 로봇 PC
 
+```
 firebase-admin
-
 opencv-contrib-python
-
 numpy
-
 rclpy              # ROS2 (pip 아닌 ROS2 설치로 사용)
-
 cv-bridge          # ROS2 (pip 아닌 ROS2 설치로 사용)
+```
 
 ### 공통 설치 명령
 ```bash
