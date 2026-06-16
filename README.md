@@ -1,5 +1,5 @@
 ## 통합 플로우 차트
-
+```mermaid
 flowchart TB
 
   subgraph NORMAL["정상 플로우"]
@@ -36,7 +36,7 @@ flowchart TB
     N14 --> N15
     N15 --> N16
   end
-
+```
   subgraph EMERGENCY["비상시 플로우"]
 
     subgraph RED["빨간불"]
