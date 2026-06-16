@@ -26,6 +26,7 @@ Flask 웹서버 + Firebase + ROS2로 고객 요청부터 로봇 실행까지 전
 4. [사용한 장비 목록](#-사용한-장비-목록)
 5. [의존성](#-의존성-requirementstxt)
 6. [실행 방법](#-실행-방법)
+7. [트러블슈팅](#-트러블슈팅)
 
 ---
 
@@ -390,3 +391,21 @@ python3 robot_command_listener_pause_resume_auto.py
 4. 로봇 PC - robot_command_listener 실행
 5. 브라우저 - http://서버PC_IP:5000 접속
 6. 브라우저 - http://서버PC_IP:5000/admin/dashboard 관리자 접속
+
+---
+
+## 🛠️ 트러블슈팅
+
+**이미지 전처리 — Canny 더블 엣지 아티팩트**
+
+두꺼운 윤곽선을 Canny로 검출할 때 외곽선이 이중으로 잡히는 문제가 있었습니다. 다음 파이프라인으로 해결했습니다.
+
+1. Grayscale 변환 → Gaussian Blur (5×5)
+2. Adaptive Thresholding (`ADAPTIVE_THRESH_GAUSSIAN_C`, `THRESH_BINARY_INV`, block_size=11, C=2)
+3. Morphological Closing (3×3 kernel, 1회)
+
+Adaptive Thresholding은 조명이 불균일한 환경에서 전역(global) threshold보다 안정적으로 윤곽을 분리해주고, Closing은 끊어진 작은 구멍/단절을 메워 윤곽선을 하나로 연결해주는 역할을 합니다.
+
+**IK/좌표 변환 — 캔버스 중심 정렬 및 회전 보정**
+
+이미지 좌표를 로봇 좌표로 변환하는 과정에서, 캔버스 중심이 맞지 않아 그림이 한쪽으로 쏠리는 문제와 회전 보정값이 맞지 않아 그림이 기울어진 채로 그려지는 문제가 있었습니다. 캔버스 중심 좌표 계산과 회전 변환 로직을 다시 점검하며 보정해 두 문제 모두 해결했습니다.
