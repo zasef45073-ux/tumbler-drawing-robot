@@ -1,0 +1,450 @@
+{% extends "base.html" %}
+
+{% block title %}관리자 대시보드 | Doosan M0609{% endblock %}
+{% block page_label %}관리자 페이지{% endblock %}
+{% block page_title %}대시보드{% endblock %}
+
+{% block content %}
+
+<!-- 상단 요약 카드 -->
+<div class="summary-grid">
+  {% for card in summary_cards %}
+  <div class="card">
+    <div class="summary-label">{{ card.label }}</div>
+    <div class="summary-value">{{ card.value }}</div>
+    <div class="summary-sub">{{ card.sub }}</div>
+  </div>
+  {% endfor %}
+
+  <div class="card robot-status-card">
+    <div class="summary-label">로봇 상태</div>
+    <div id="robotState" class="summary-value">
+      {{ robot_status.stateText }}
+    </div>
+    <div id="robotLastUpdate" class="summary-sub">
+      마지막 업데이트 {{ robot_status.last_update_text }}
+    </div>
+  </div>
+</div>
+
+<!-- 중앙: 현재 작업 + 로봇 실시간 좌표 -->
+<div class="main-grid">
+
+  <!-- 현재 진행 중인 작업 -->
+  <div class="card">
+    <div class="section-head">
+      <div>
+        <div class="section-title">현재 진행 중인 작업</div>
+        <div class="section-desc">
+          로봇팔이 수행 중인 드로잉 작업 정보입니다.
+        </div>
+      </div>
+
+      <span id="currentJobStatus" class="status-pill">
+        {{ current_job.statusText }}
+      </span>
+    </div>
+
+    <div class="preview-grid">
+      <div class="preview-box">
+        <div class="preview-top">
+          <div class="preview-title">원본 이미지</div>
+          <div class="preview-sub">업로드 파일</div>
+        </div>
+
+        {% if current_job.imageUrl %}
+        <img
+          id="currentOriginalImage"
+          class="preview-image"
+          src="{{ current_job.imageUrl }}"
+          alt="원본 이미지"
+        />
+        {% else %}
+        <div id="currentOriginalImagePlaceholder" class="preview-placeholder">
+          이미지 미리보기 영역
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-top">
+          <div class="preview-title">드로잉 변환 이미지</div>
+          <div class="preview-sub">로봇 작업용</div>
+        </div>
+
+        {% if current_job.convertedImageUrl %}
+        <img
+          id="currentConvertedImage"
+          class="preview-image"
+          src="{{ current_job.convertedImageUrl }}"
+          alt="변환 이미지"
+        />
+        {% else %}
+        <div id="currentConvertedImagePlaceholder" class="preview-placeholder">
+          변환 이미지 미리보기 영역
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="job-info-grid">
+      <div class="info-cell">
+        <div class="info-label">접수번호</div>
+        <div id="currentJobId" class="info-value">
+          {{ current_job.id }}
+        </div>
+      </div>
+
+      <div class="info-cell">
+        <div class="info-label">고객명</div>
+        <div id="currentCustomerName" class="info-value">
+          {{ current_job.name }}
+        </div>
+      </div>
+
+      <div class="info-cell">
+        <div class="info-label">작업 단계</div>
+        <div id="currentJobStep" class="info-value">
+          {{ current_job.step }}
+        </div>
+      </div>
+
+      <div class="info-cell">
+        <div class="info-label">시작 시간</div>
+        <div id="currentJobStartTime" class="info-value">
+          {{ current_job.start_time }}
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-area">
+      <div class="progress-top">
+        <span>진행률</span>
+        <span id="currentJobProgressText">
+          {{ current_job.progress }}%
+        </span>
+      </div>
+
+      <div class="progress-track">
+        <div
+          id="currentJobProgressBar"
+          class="progress-fill"
+          style="width: {{ current_job.progress }}%;"
+        ></div>
+      </div>
+
+      <!-- 현재 작업 로그 1줄 표시 영역 -->
+      <div
+        class="job-log-box"
+        style="
+          margin-top: 14px;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          background: #f8fafc;
+          padding: 12px 14px;
+        "
+      >
+        <div
+          style="
+            margin-bottom: 6px;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 900;
+          "
+        >
+          현재 작업 로그
+        </div>
+
+        <div
+          id="currentJobLogLine"
+          style="
+            color: #0f172a;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.55;
+            word-break: break-all;
+          "
+        >
+          [Dashboard][Progress] {{ current_job.id }} | {{ current_job.statusText }} | step={{ current_job.step }} | progress={{ current_job.progress }}%
+        </div>
+      </div>
+    </div>
+
+    <div class="button-row">
+      {% if current_job.id and current_job.id != "-" %}
+      <a
+        id="currentJobDetailLink"
+        class="btn-primary link-button"
+        href="{{ url_for('admin.request_detail', request_id=current_job.id) }}"
+      >
+        작업 상세 보기
+      </a>
+      {% else %}
+      <button
+        id="currentJobDetailDisabled"
+        class="btn-primary disabled-btn"
+        type="button"
+        disabled
+      >
+        작업 상세 보기
+      </button>
+      {% endif %}
+
+      <button class="btn-secondary" type="button">
+        일시정지
+      </button>
+
+      <button class="btn-danger" type="button">
+        작업 중지
+      </button>
+    </div>
+  </div>
+
+  <!-- 로봇 실시간 좌표 -->
+  <div class="card">
+    <div class="section-head">
+      <div>
+        <div class="section-title">로봇 실시간 좌표</div>
+        <div class="section-desc">
+          J1~J6, TCP 위치값
+        </div>
+      </div>
+
+      <span id="liveBadge" class="live-pill">
+        LIVE
+      </span>
+    </div>
+
+    <div class="value-section">
+      <div class="value-section-title">Joint</div>
+
+      <div class="value-grid">
+        {% for label, value in robot_status.joint_values %}
+        <div class="value-cell">
+          <div class="value-name">{{ label }}</div>
+          <div
+            id="joint{{ label }}"
+            class="value-number"
+          >
+            {{ value }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="value-section">
+      <div class="value-section-title">Pose</div>
+
+      <div class="value-grid">
+        {% for label, value in robot_status.pose_values %}
+        <div class="value-cell">
+          <div class="value-name">{{ label }}</div>
+          <div
+            id="pose{{ label }}"
+            class="value-number"
+          >
+            {{ value }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="connection-box">
+      <div class="connection-title">연결 정보</div>
+
+      <div class="connection-row">
+        <span>Robot</span>
+        <strong id="robotConnectionText">
+          {{ robot_status.connection.label }}
+        </strong>
+      </div>
+
+      <div class="connection-row">
+        <span>DB</span>
+        <strong>Firebase</strong>
+      </div>
+
+      <div class="connection-row">
+        <span>Update</span>
+        <b id="robotUpdateTime">
+          {{ robot_status.last_update_text }}
+        </b>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 승인 대기 요청 목록 -->
+<div class="card">
+  <div class="table-head">
+    <div>
+      <div class="section-title">승인 대기 요청</div>
+      <div class="section-desc">
+        고객이 업로드한 이미지 요청을 확인하고 작업 승인할 수 있습니다.
+      </div>
+    </div>
+
+    <a
+      class="btn-secondary link-button"
+      href="{{ url_for('admin.request_list') }}"
+    >
+      전체 요청 보기
+    </a>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>접수번호</th>
+          <th>고객명</th>
+          <th>옵션</th>
+          <th>상태</th>
+          <th>접수시간</th>
+          <th>관리</th>
+        </tr>
+      </thead>
+
+      <tbody id="pendingRequestsBody">
+        {% if pending_requests %}
+          {% for request in pending_requests %}
+          <tr>
+            <td class="request-id">{{ request.id }}</td>
+            <td>{{ request.name }}</td>
+            <td>{{ request.option }}</td>
+            <td>
+              <span class="pending-badge">
+                {{ request.status }}
+              </span>
+            </td>
+            <td>{{ request.time }}</td>
+            <td>
+              <a
+                class="detail-btn link-button"
+                href="{{ url_for('admin.request_detail', request_id=request.id) }}"
+              >
+                상세보기
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="6" class="empty-table-message">
+              현재 승인 대기 요청이 없습니다.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+<script>
+  /*
+    현재 작업 로그 1줄 자동 갱신 스크립트
+
+    dashboard.js가 /api/dashboard 값을 읽어서 아래 DOM을 갱신하면,
+    이 스크립트가 그 값을 조합해서 로그처럼 한 줄로 표시합니다.
+
+    사용 값:
+    - currentJobId
+    - currentJobStatus
+    - currentJobStep
+    - currentJobProgressText
+  */
+
+  function getCleanTextById(id, fallback = "-") {
+    const element = document.getElementById(id);
+
+    if (!element) {
+      return fallback;
+    }
+
+    const text = (element.textContent || "").trim();
+
+    if (!text) {
+      return fallback;
+    }
+
+    return text;
+  }
+
+  function normalizeProgressText(progressText) {
+    const cleanText = String(progressText || "").trim();
+
+    if (!cleanText || cleanText === "-") {
+      return "0%";
+    }
+
+    if (cleanText.endsWith("%")) {
+      return cleanText;
+    }
+
+    return `${cleanText}%`;
+  }
+
+  function updateCurrentJobLogLine() {
+    const logElement = document.getElementById("currentJobLogLine");
+
+    if (!logElement) {
+      return;
+    }
+
+    const jobId = getCleanTextById("currentJobId");
+    const statusText = getCleanTextById("currentJobStatus", "상태 확인 중");
+    const step = getCleanTextById("currentJobStep", "-");
+    const progress = normalizeProgressText(
+      getCleanTextById("currentJobProgressText", "0%")
+    );
+
+    if (!jobId || jobId === "-") {
+      logElement.textContent = "[Dashboard][Progress] 대기 중인 로봇 작업이 없습니다.";
+      return;
+    }
+
+    logElement.textContent =
+      `[Dashboard][Progress] ${jobId} | ${statusText} | step=${step} | progress=${progress}`;
+  }
+
+  function observeCurrentJobElements() {
+    const targetIds = [
+      "currentJobId",
+      "currentJobStatus",
+      "currentJobStep",
+      "currentJobProgressText",
+    ];
+
+    const observer = new MutationObserver(() => {
+      updateCurrentJobLogLine();
+    });
+
+    targetIds.forEach((id) => {
+      const element = document.getElementById(id);
+
+      if (!element) {
+        return;
+      }
+
+      observer.observe(element, {
+        childList: true,
+        characterData: true,
+        subtree: true,
+      });
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    updateCurrentJobLogLine();
+    observeCurrentJobElements();
+  });
+</script>
+{% endblock %}

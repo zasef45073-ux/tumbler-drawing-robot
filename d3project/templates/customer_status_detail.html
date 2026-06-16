@@ -1,0 +1,257 @@
+{% extends "customer_base.html" %}
+
+{% block title %}제작 상태 상세 | Robot Drawing Tumbler{% endblock %}
+
+{% block content %}
+
+<section class="status-detail-section">
+
+  <!-- 상단 상태 카드 -->
+  <div class="status-detail-hero">
+    <div>
+      <div class="status-search-badge">
+        제작 진행 상태
+      </div>
+
+      <h1>
+        {{ request_status.statusText }}
+      </h1>
+
+      <p>
+        {{ request_status.guideDescription }}
+      </p>
+    </div>
+
+    <div class="status-detail-state-box">
+      <span class="customer-status-badge customer-status-{{ request_status.statusClass }}">
+        {{ request_status.statusText }}
+      </span>
+
+      <div class="status-detail-request-id">
+        {{ request_status.id }}
+      </div>
+    </div>
+  </div>
+
+  <!-- 진행률 카드 -->
+  <div class="status-progress-card">
+    <div class="status-progress-top">
+      <div>
+        <div class="status-progress-title">
+          {{ request_status.guideTitle }}
+        </div>
+
+        <div class="status-progress-desc">
+          현재 제작 요청의 진행 상황입니다.
+        </div>
+      </div>
+
+      <div class="status-progress-percent">
+        {{ request_status.progress }}%
+      </div>
+    </div>
+
+    <div class="customer-progress-track">
+      <div
+        class="customer-progress-fill"
+        style="width: {{ request_status.progress }}%;"
+      ></div>
+    </div>
+
+    <div class="status-step-grid">
+      <div class="status-step-item {% if request_status.progress >= 10 %}active{% endif %}">
+        <span>1</span>
+        <strong>접수</strong>
+      </div>
+
+      <div class="status-step-item {% if request_status.progress >= 20 %}active{% endif %}">
+        <span>2</span>
+        <strong>검수</strong>
+      </div>
+
+      <div class="status-step-item {% if request_status.progress >= 35 %}active{% endif %}">
+        <span>3</span>
+        <strong>승인</strong>
+      </div>
+
+      <div class="status-step-item {% if request_status.progress >= 45 %}active{% endif %}">
+        <span>4</span>
+        <strong>대기</strong>
+      </div>
+
+      <div class="status-step-item {% if request_status.progress >= 70 %}active{% endif %}">
+        <span>5</span>
+        <strong>드로잉</strong>
+      </div>
+
+      <div class="status-step-item {% if request_status.progress >= 100 %}active{% endif %}">
+        <span>6</span>
+        <strong>완료</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- 이미지 / 정보 영역 -->
+  <div class="status-detail-grid">
+
+    <!-- 왼쪽: 이미지 -->
+    <div class="status-image-card">
+      <div class="section-heading compact-heading">
+        <h2>이미지 확인</h2>
+        <p>
+          고객이 업로드한 원본 이미지와 로봇 드로잉용 변환 이미지를 확인할 수 있습니다.
+        </p>
+      </div>
+
+      <div class="status-image-grid">
+        <div class="status-image-box">
+          <div class="status-image-top">
+            <strong>원본 이미지</strong>
+            <span>{{ request_status.originalFilename }}</span>
+          </div>
+
+          {% if request_status.imageUrl %}
+          <img
+            class="status-preview-image"
+            src="{{ request_status.imageUrl }}"
+            alt="원본 이미지"
+          />
+          {% else %}
+          <div class="status-preview-placeholder">
+            원본 이미지가 없습니다.
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="status-image-box">
+          <div class="status-image-top">
+            <strong>변환 이미지</strong>
+            <span>로봇 작업용</span>
+          </div>
+
+          {% if request_status.convertedImageUrl %}
+          <img
+            class="status-preview-image"
+            src="{{ request_status.convertedImageUrl }}"
+            alt="변환 이미지"
+          />
+          {% else %}
+          <div class="status-preview-placeholder">
+            아직 변환 이미지가 없습니다.<br />
+            로봇 작업 또는 이미지 변환 완료 후 표시됩니다.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- 오른쪽: 요청 정보 -->
+    <div class="status-info-card">
+      <div class="section-heading compact-heading">
+        <h2>요청 정보</h2>
+        <p>
+          접수된 제작 요청의 상세 정보입니다.
+        </p>
+      </div>
+
+      <div class="status-info-list">
+        <div class="status-info-row">
+          <span>접수번호</span>
+          <strong>{{ request_status.id }}</strong>
+        </div>
+
+        <div class="status-info-row">
+          <span>고객명</span>
+          <strong>{{ request_status.customerName }}</strong>
+        </div>
+
+        <div class="status-info-row">
+          <span>제작 옵션</span>
+          <strong>{{ request_status.option }}</strong>
+        </div>
+
+        <div class="status-info-row">
+          <span>현재 상태</span>
+          <strong>{{ request_status.statusText }}</strong>
+        </div>
+
+        <div class="status-info-row">
+          <span>작업 단계</span>
+          <strong>{{ request_status.step }}</strong>
+        </div>
+
+        <div class="status-info-row">
+          <span>접수일시</span>
+          <strong>{{ request_status.createdAt }}</strong>
+        </div>
+
+        <div class="status-info-row">
+          <span>최근 수정</span>
+          <strong>{{ request_status.updatedAt }}</strong>
+        </div>
+      </div>
+
+      <div class="status-request-text">
+        <div class="status-mini-title">요청사항</div>
+
+        {% if request_status.requestText %}
+        <p>{{ request_status.requestText }}</p>
+        {% else %}
+        <p class="status-muted-text">별도 요청사항이 없습니다.</p>
+        {% endif %}
+      </div>
+
+      {% if request_status.adminMemo %}
+      <div class="status-notice-box">
+        <strong>관리자 메모</strong>
+        <p>{{ request_status.adminMemo }}</p>
+      </div>
+      {% endif %}
+
+      {% if request_status.errorMessage %}
+      <div class="status-error-box">
+        <strong>오류 메시지</strong>
+        <p>{{ request_status.errorMessage }}</p>
+      </div>
+      {% endif %}
+
+      {% if request_status.isCurrentJob %}
+      <div class="status-notice-box">
+        <strong>현재 로봇 작업과 연결됨</strong>
+        <p>
+          이 접수번호는 현재 작업 정보와 연결되어 있으며,
+          진행률은 Firebase current_job 값을 기준으로 표시됩니다.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 하단 버튼 -->
+  <div class="status-detail-actions">
+    <button
+      class="primary-link-btn"
+      type="button"
+      onclick="location.reload()"
+    >
+      상태 새로고침
+    </button>
+
+    <a
+      class="secondary-link-btn"
+      href="{{ url_for('customer.customer_status_search') }}"
+    >
+      다른 접수번호 조회
+    </a>
+
+    <a
+      class="secondary-link-btn"
+      href="{{ url_for('customer.customer_home') }}"
+    >
+      새 이미지 업로드
+    </a>
+  </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "customer_base.html" %}
+
+{% block title %}진행 상태 조회 | Robot Drawing Tumbler{% endblock %}
+
+{% block content %}
+
+<section class="status-search-section">
+  <div class="status-search-card">
+    <div class="status-search-badge">
+      제작 진행 상태 조회
+    </div>
+
+    <h1>
+      접수번호로 제작 상태를<br />
+      확인할 수 있습니다.
+    </h1>
+
+    <p class="status-search-desc">
+      이미지 업로드 후 발급받은 접수번호를 입력하면
+      관리자 검수, 제작 승인, 로봇 드로잉 진행 상태를 확인할 수 있습니다.
+    </p>
+
+    <form
+      class="status-search-form"
+      action="{{ url_for('customer.customer_status_check') }}"
+      method="post"
+    >
+      <label for="requestId">접수번호</label>
+
+      <div class="status-search-input-row">
+        <input
+          type="text"
+          id="requestId"
+          name="requestId"
+          placeholder="예: TMB-20260430-202241-469F"
+          autocomplete="off"
+          required
+        />
+
+        <button type="submit">
+          조회하기
+        </button>
+      </div>
+
+      <div class="status-search-help">
+        접수 완료 화면에 표시된 <strong>TMB-</strong>로 시작하는 번호를 입력해주세요.
+      </div>
+    </form>
+
+    <div class="status-search-actions">
+      <a
+        class="secondary-link-btn"
+        href="{{ url_for('customer.customer_home') }}"
+      >
+        이미지 업로드로 돌아가기
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="status-guide-section">
+  <div class="section-heading">
+    <h2>진행 단계 안내</h2>
+    <p>
+      접수된 요청은 관리자 확인 후 로봇 드로잉 작업으로 진행됩니다.
+    </p>
+  </div>
+
+  <div class="status-guide-grid">
+    <div class="status-guide-card">
+      <div class="status-guide-number">1</div>
+      <div>
+        <strong>접수 완료</strong>
+        <p>고객님의 이미지와 요청사항이 Firebase에 저장됩니다.</p>
+      </div>
+    </div>
+
+    <div class="status-guide-card">
+      <div class="status-guide-number">2</div>
+      <div>
+        <strong>관리자 검수</strong>
+        <p>관리자가 이미지를 확인하고 제작 가능 여부를 판단합니다.</p>
+      </div>
+    </div>
+
+    <div class="status-guide-card">
+      <div class="status-guide-number">3</div>
+      <div>
+        <strong>제작 승인</strong>
+        <p>제작이 가능하다고 판단되면 작업 시작 대기 상태가 됩니다.</p>
+      </div>
+    </div>
+
+    <div class="status-guide-card">
+      <div class="status-guide-number">4</div>
+      <div>
+        <strong>로봇 드로잉</strong>
+        <p>Doosan M0609 로봇팔이 이미지 기반 드로잉을 수행합니다.</p>
+      </div>
+    </div>
+
+    <div class="status-guide-card">
+      <div class="status-guide-number">5</div>
+      <div>
+        <strong>제작 완료</strong>
+        <p>드로잉 작업이 완료되면 완료 상태로 표시됩니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends "customer_base.html" %}
+
+{% block title %}이미지 업로드 | Robot Drawing Tumbler{% endblock %}
+
+{% block content %}
+
+<section class="hero-section">
+  <div class="hero-text">
+    <div class="eyebrow">Doosan M0609 Robot Drawing Service</div>
+
+    <h1>
+      원하는 이미지를 업로드하면<br />
+      로봇팔이 직접 그림을 그려드립니다.
+    </h1>
+
+    <p>
+      업로드한 이미지는 로봇팔이 그릴 수 있는 형태로 변환되어 종이에 드로잉됩니다.
+      완성된 그림은 텀블러에 부착 가능한 라벨 형태로 활용할 수 있습니다.
+    </p>
+
+    <div class="process-list">
+      <div class="process-item">
+        <span>1</span>
+        이미지 업로드
+      </div>
+      <div class="process-item">
+        <span>2</span>
+        관리자 검수
+      </div>
+      <div class="process-item">
+        <span>3</span>
+        로봇 드로잉
+      </div>
+      <div class="process-item">
+        <span>4</span>
+        제작 완료
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-card">
+    <div class="robot-card-title">제작 상태 안내</div>
+
+    <div class="robot-card-row">
+      <span>업로드</span>
+      <strong>사진 선택</strong>
+    </div>
+
+    <div class="robot-card-row">
+      <span>변환</span>
+      <strong>드로잉용 이미지</strong>
+    </div>
+
+    <div class="robot-card-row">
+      <span>제작</span>
+      <strong>Doosan M0609</strong>
+    </div>
+  </div>
+</section>
+
+<section class="upload-section">
+  <div class="section-heading">
+    <h2>이미지 제작 요청</h2>
+    <p>
+      고객명과 이미지를 입력하면 요청이 접수됩니다.
+      접수 후 관리자가 이미지를 확인하고 제작을 진행합니다.
+    </p>
+  </div>
+
+  <form
+    class="upload-form"
+    action="{{ url_for('customer.customer_upload') }}"
+    method="post"
+    enctype="multipart/form-data"
+  >
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="customerName">고객명</label>
+        <input
+          type="text"
+          id="customerName"
+          name="customerName"
+          placeholder="예: 김OO"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="option">제작 옵션</label>
+        <select id="option" name="option">
+          <option value="기본">기본</option>
+          <option value="선명한 선">선명한 선</option>
+          <option value="단순화">단순화</option>
+          <option value="중형 라벨">중형 라벨</option>
+          <option value="대형 라벨">대형 라벨</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="requestText">요청사항</label>
+      <textarea
+        id="requestText"
+        name="requestText"
+        rows="4"
+        placeholder="예: 선이 잘 보이게 그려주세요."
+      ></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="imageFile">이미지 파일</label>
+
+      <label class="file-upload-box" for="imageFile">
+        <div class="file-upload-icon">＋</div>
+        <div>
+          <strong id="fileNameText">이미지를 선택해주세요</strong>
+          <p>png, jpg, jpeg, webp, gif 파일 / 최대 10MB</p>
+        </div>
+      </label>
+
+      <input
+        class="hidden-file-input"
+        type="file"
+        id="imageFile"
+        name="imageFile"
+        accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+        required
+      />
+    </div>
+
+    <div class="preview-area" id="previewArea">
+      <div class="preview-empty">
+        선택한 이미지 미리보기가 여기에 표시됩니다.
+      </div>
+    </div>
+
+    <label class="agree-row">
+      <input type="checkbox" required />
+      <span>
+        업로드한 이미지가 로봇 드로잉 제작 및 프로젝트 시연 목적으로 사용될 수 있음을 확인했습니다.
+      </span>
+    </label>
+
+    <button class="submit-btn" type="submit">
+      제작 요청하기
+    </button>
+  </form>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const imageInput = document.getElementById("imageFile");
+  const previewArea = document.getElementById("previewArea");
+  const fileNameText = document.getElementById("fileNameText");
+
+  imageInput.addEventListener("change", function () {
+    const file = this.files && this.files[0];
+
+    if (!file) {
+      fileNameText.textContent = "이미지를 선택해주세요";
+      previewArea.innerHTML = `
+        <div class="preview-empty">
+          선택한 이미지 미리보기가 여기에 표시됩니다.
+        </div>
+      `;
+      return;
+    }
+
+    fileNameText.textContent = file.name;
+
+    const reader = new FileReader();
+
+    reader.onload = function (event) {
+      previewArea.innerHTML = `
+        <img
+          class="upload-preview-image"
+          src="${event.target.result}"
+          alt="업로드 이미지 미리보기"
+        />
+      `;
+    };
+
+    reader.readAsDataURL(file);
+  });
+</script>
+{% endblock %}

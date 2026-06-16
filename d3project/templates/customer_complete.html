@@ -1,0 +1,69 @@
+{% extends "customer_base.html" %}
+
+{% block title %}접수 완료 | Robot Drawing Tumbler{% endblock %}
+
+{% block content %}
+
+<section class="complete-section">
+  <div class="complete-card">
+    <div class="complete-icon">✓</div>
+
+    <h1>제작 요청이 접수되었습니다.</h1>
+
+    <p>
+      업로드한 이미지는 관리자 확인 후 로봇 드로잉 작업으로 진행됩니다.
+      아래 접수번호를 보관해주세요.
+    </p>
+
+    <div class="request-number-box">
+      <div class="request-number-label">접수번호</div>
+      <div class="request-number">{{ request_id }}</div>
+    </div>
+
+    <div class="complete-info-list">
+      <div class="complete-info-item">
+        <span>1</span>
+        <div>
+          <strong>요청 접수</strong>
+          <p>고객님의 이미지와 요청사항이 저장되었습니다.</p>
+        </div>
+      </div>
+
+      <div class="complete-info-item">
+        <span>2</span>
+        <div>
+          <strong>관리자 검수</strong>
+          <p>이미지가 로봇 드로잉에 적합한지 확인합니다.</p>
+        </div>
+      </div>
+
+      <div class="complete-info-item">
+        <span>3</span>
+        <div>
+          <strong>로봇 드로잉</strong>
+          <p>Doosan M0609 로봇팔이 종이에 그림을 그립니다.</p>
+        </div>
+      </div>
+
+      <div class="complete-info-item">
+        <span>4</span>
+        <div>
+          <strong>제작 완료</strong>
+          <p>완성된 그림은 텀블러 라벨로 활용됩니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="complete-button-row">
+      <a class="primary-link-btn" href="{{ url_for('customer.customer_home') }}">
+        다른 이미지 요청하기
+      </a>
+
+      <a class="secondary-link-btn" href="{{ url_for('admin.dashboard') }}" target="_blank">
+        관리자 화면 확인
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

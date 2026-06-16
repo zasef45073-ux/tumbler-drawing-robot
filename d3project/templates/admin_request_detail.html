@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}요청 상세 | Doosan M0609{% endblock %}
+{% block page_label %}관리자 페이지{% endblock %}
+{% block page_title %}요청 상세{% endblock %}
+
+{% block content %}
+
+<div class="admin-page-head">
+  <div>
+    <div class="section-title">제작 요청 상세</div>
+    <div class="section-desc">
+      고객이 업로드한 이미지와 요청사항을 확인하고 승인, 거절, 작업 시작을 처리할 수 있습니다.
+    </div>
+  </div>
+
+  <div class="admin-page-actions">
+    <a class="btn-secondary link-button" href="{{ url_for('admin.request_list') }}">
+      요청 목록
+    </a>
+
+    <a class="btn-secondary link-button" href="{{ url_for('admin.dashboard') }}">
+      대시보드
+    </a>
+  </div>
+</div>
+
+<div class="detail-grid">
+
+  <!-- 왼쪽: 이미지 확인 -->
+  <div class="card">
+    <div class="section-head">
+      <div>
+        <div class="section-title">이미지 확인</div>
+        <div class="section-desc">
+          원본 이미지와 로봇 작업용 변환 이미지를 확인합니다.
+        </div>
+      </div>
+
+      <span class="status-badge status-{{ request_data.status | lower }}">
+        {{ request_data.statusText }}
+      </span>
+    </div>
+
+    <div class="detail-image-grid">
+      <div class="detail-image-box">
+        <div class="preview-top">
+          <div class="preview-title">원본 이미지</div>
+          <div class="preview-sub">{{ request_data.originalFilename }}</div>
+        </div>
+
+        {% if request_data.imageUrl %}
+        <img
+          class="detail-preview-image"
+          src="{{ request_data.imageUrl }}"
+          alt="원본 이미지"
+        />
+        {% else %}
+        <div class="preview-placeholder">
+          원본 이미지가 없습니다.
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="detail-image-box">
+        <div class="preview-top">
+          <div class="preview-title">드로잉 변환 이미지</div>
+          <div class="preview-sub">로봇 작업용</div>
+        </div>
+
+        {% if request_data.convertedImageUrl %}
+        <img
+          class="detail-preview-image"
+          src="{{ request_data.convertedImageUrl }}"
+          alt="변환 이미지"
+        />
+        {% else %}
+        <div class="preview-placeholder">
+          아직 변환 이미지가 없습니다.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="image-url-box">
+      <div class="detail-label">로봇 PC 이미지 접근 URL</div>
+
+      {% if request_data.imageUrl %}
+      <div class="image-url-text">
+        {{ request_data.imageUrl }}
+      </div>
+      <p>
+        로봇 제어 PC는 Firebase의 <strong>commands/start/imageUrl</strong> 값을 읽어서
+        이 주소의 이미지를 다운로드하면 됩니다.
+      </p>
+      {% else %}
+      <div class="image-url-text muted-text">
+        이미지 URL이 없습니다.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 오른쪽: 요청 정보 및 처리 -->
+  <div class="card">
+    <div class="section-title">요청 정보</div>
+    <div class="section-desc">
+      접수된 고객 요청 정보입니다.
+    </div>
+
+    <div class="detail-info-list">
+      <div class="detail-info-row">
+        <span>접수번호</span>
+        <strong>{{ request_data.id }}</strong>
+      </div>
+
+      <div class="detail-info-row">
+        <span>고객명</span>
+        <strong>{{ request_data.customerName }}</strong>
+      </div>
+
+      <div class="detail-info-row">
+        <span>제작 옵션</span>
+        <strong>{{ request_data.option }}</strong>
+      </div>
+
+      <div class="detail-info-row">
+        <span>상태</span>
+        <strong>{{ request_data.statusText }}</strong>
+      </div>
+
+      <div class="detail-info-row">
+        <span>접수일시</span>
+        <strong>{{ request_data.createdAt }}</strong>
+      </div>
+    </div>
+
+    <div class="detail-request-text">
+      <div class="detail-label">요청사항</div>
+
+      {% if request_data.requestText %}
+      <p>{{ request_data.requestText }}</p>
+      {% else %}
+      <p class="muted-text">별도 요청사항이 없습니다.</p>
+      {% endif %}
+    </div>
+
+    <form class="admin-action-form" method="post">
+      <label for="adminMemo">관리자 메모</label>
+      <textarea
+        id="adminMemo"
+        name="adminMemo"
+        rows="4"
+        placeholder="검수 의견이나 작업 메모를 입력하세요."
+      >{{ request_data.adminMemo }}</textarea>
+    </form>
+
+    <div class="detail-status-guide">
+      {% if request_data.status in ["SUBMITTED", "REVIEWING"] %}
+        <strong>현재 단계: 검수 필요</strong>
+        <p>이미지를 확인한 뒤 제작 승인 또는 제작 불가 처리를 할 수 있습니다.</p>
+      {% elif request_data.status == "APPROVED" %}
+        <strong>현재 단계: 제작 승인 완료</strong>
+        <p>이제 작업 시작 버튼을 눌러 Firebase에 로봇 작업 명령을 보낼 수 있습니다.</p>
+      {% elif request_data.status == "WAITING" %}
+        <strong>현재 단계: 제작 대기</strong>
+        <p>작업 시작 명령이 생성되었습니다. 로봇 PC가 명령을 확인하면 드로잉이 시작됩니다.</p>
+      {% elif request_data.status == "DRAWING" %}
+        <strong>현재 단계: 로봇 드로잉 중</strong>
+        <p>이미 로봇 작업이 진행 중입니다. 중복 작업 시작은 제한됩니다.</p>
+      {% elif request_data.status == "COMPLETED" %}
+        <strong>현재 단계: 제작 완료</strong>
+        <p>이미 완료된 요청입니다.</p>
+      {% elif request_data.status == "REJECTED" %}
+        <strong>현재 단계: 제작 불가</strong>
+        <p>제작 불가 처리된 요청입니다.</p>
+      {% elif request_data.status == "ERROR" %}
+        <strong>현재 단계: 오류 발생</strong>
+        <p>작업 중 오류가 발생한 요청입니다. Firebase의 errorMessage를 확인해주세요.</p>
+      {% else %}
+        <strong>현재 단계: 상태 확인 필요</strong>
+        <p>알 수 없는 상태입니다.</p>
+      {% endif %}
+    </div>
+
+    <div class="detail-button-column">
+
+      {% if request_data.canApprove %}
+      <form
+        method="post"
+        action="{{ url_for('admin.request_approve', request_id=request_data.id) }}"
+      >
+        <textarea name="adminMemo" class="hidden-memo">{{ request_data.adminMemo }}</textarea>
+        <button class="btn-primary full-width-btn" type="submit">
+          제작 승인
+        </button>
+      </form>
+      {% else %}
+      <button class="btn-primary full-width-btn disabled-btn" type="button" disabled>
+        제작 승인 불가
+      </button>
+      {% endif %}
+
+      {% if request_data.canStart %}
+      <form
+        method="post"
+        action="{{ url_for('admin.request_start', request_id=request_data.id) }}"
+      >
+        <button class="btn-secondary full-width-btn" type="submit">
+          작업 시작
+        </button>
+      </form>
+      {% else %}
+      <button class="btn-secondary full-width-btn disabled-btn" type="button" disabled>
+        작업 시작 불가
+      </button>
+      {% endif %}
+
+      {% if request_data.canReject %}
+      <form
+        method="post"
+        action="{{ url_for('admin.request_reject', request_id=request_data.id) }}"
+      >
+        <textarea name="adminMemo" class="hidden-memo">{{ request_data.adminMemo }}</textarea>
+        <button class="btn-danger full-width-btn" type="submit">
+          제작 불가
+        </button>
+      </form>
+      {% else %}
+      <button class="btn-danger full-width-btn disabled-btn" type="button" disabled>
+        제작 불가 처리 불가
+      </button>
+      {% endif %}
+
+    </div>
+
+    <div class="detail-help-box">
+      <strong>권장 사용 순서</strong>
+      <p>
+        1. 원본 이미지를 확인합니다.<br />
+        2. 제작 가능하면 <b>제작 승인</b>을 누릅니다.<br />
+        3. 실제 로봇 작업을 진행할 때 <b>작업 시작</b>을 누릅니다.
+      </p>
+    </div>
+
+    <div class="detail-help-box">
+      <strong>작업 시작 버튼 동작</strong>
+      <p>
+        작업 시작을 누르면 Firebase의 <b>current_job</b>에 현재 작업이 저장되고,
+        <b>commands/start</b>에 로봇 PC가 읽을 작업 명령이 생성됩니다.
+        실제 로봇 움직임은 로봇 제어 PC 쪽 알고리즘이 이 명령을 읽어서 수행합니다.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const memoInput = document.getElementById("adminMemo");
+  const hiddenMemos = document.querySelectorAll(".hidden-memo");
+
+  if (memoInput) {
+    memoInput.addEventListener("input", () => {
+      hiddenMemos.forEach((memo) => {
+        memo.value = memoInput.value;
+      });
+    });
+  }
+</script>
+
+{% endblock %}

@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block title %}요청 목록 | Doosan M0609{% endblock %}
+{% block page_label %}관리자 페이지{% endblock %}
+{% block page_title %}요청 목록{% endblock %}
+
+{% block content %}
+
+<div class="admin-page-head">
+  <div>
+    <div class="section-title">전체 제작 요청</div>
+    <div class="section-desc">
+      고객이 업로드한 이미지 요청 전체 목록입니다. 상세보기에서 승인, 거절, 작업 시작 처리를 할 수 있습니다.
+    </div>
+  </div>
+
+  <a class="btn-secondary link-button" href="{{ url_for('admin.dashboard') }}">
+    대시보드로 이동
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-head">
+    <div>
+      <div class="section-title">요청 목록</div>
+      <div class="section-desc">
+        최신 접수 요청이 위에 표시됩니다. 상태 필터와 검색어를 이용해 요청을 빠르게 찾을 수 있습니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- 필터 / 검색 영역 -->
+  <div
+    style="
+      display: grid;
+      grid-template-columns: minmax(180px, 240px) minmax(260px, 1fr) auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 18px;
+    "
+  >
+    <div>
+      <label
+        for="statusFilter"
+        style="
+          display: block;
+          margin-bottom: 8px;
+          font-size: 13px;
+          font-weight: 900;
+          color: #334155;
+        "
+      >
+        상태 필터
+      </label>
+
+      <select
+        id="statusFilter"
+        style="
+          width: 100%;
+          border: 1px solid #cbd5e1;
+          border-radius: 14px;
+          background: #ffffff;
+          color: #0f172a;
+          padding: 11px 12px;
+          font-size: 14px;
+          font-weight: 750;
+          outline: none;
+        "
+      >
+        <option value="ALL">전체</option>
+        <option value="SUBMITTED">접수 완료</option>
+        <option value="REVIEWING">검토 중</option>
+        <option value="APPROVED">제작 승인</option>
+        <option value="WAITING">제작 대기</option>
+        <option value="DRAWING">로봇 드로잉 중</option>
+        <option value="COMPLETED">제작 완료</option>
+        <option value="REJECTED">제작 불가</option>
+        <option value="ERROR">오류 발생</option>
+      </select>
+    </div>
+
+    <div>
+      <label
+        for="requestSearchInput"
+        style="
+          display: block;
+          margin-bottom: 8px;
+          font-size: 13px;
+          font-weight: 900;
+          color: #334155;
+        "
+      >
+        검색
+      </label>
+
+      <input
+        id="requestSearchInput"
+        type="text"
+        placeholder="접수번호, 고객명, 옵션, 상태, 요청사항으로 검색"
+        style="
+          width: 100%;
+          border: 1px solid #cbd5e1;
+          border-radius: 14px;
+          background: #ffffff;
+          color: #0f172a;
+          padding: 11px 12px;
+          font-size: 14px;
+          outline: none;
+        "
+      />
+    </div>
+
+    <button
+      id="filterResetButton"
+      class="btn-secondary"
+      type="button"
+      style="height: 42px;"
+    >
+      초기화
+    </button>
+  </div>
+
+  <!-- 검색 결과 요약 -->
+  <div
+    style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 800;
+    "
+  >
+    <div>
+      표시 중:
+      <strong id="visibleRequestCount" style="color: #0f172a;">0</strong>건 /
+      전체:
+      <strong id="totalRequestCount" style="color: #0f172a;">0</strong>건
+    </div>
+
+    <div id="activeFilterText">
+      전체 요청 표시 중
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>접수번호</th>
+          <th>고객명</th>
+          <th>옵션</th>
+          <th>상태</th>
+          <th>접수시간</th>
+          <th>관리</th>
+        </tr>
+      </thead>
+
+      <tbody id="requestTableBody">
+        {% if requests %}
+          {% for item in requests %}
+          <tr
+            class="request-row"
+            data-status="{{ item.rawStatus }}"
+            data-search="{{ (item.id ~ ' ' ~ item.name ~ ' ' ~ item.option ~ ' ' ~ item.status ~ ' ' ~ item.createdAt ~ ' ' ~ item.requestText) | lower | e }}"
+          >
+            <td class="request-id">
+              {{ item.id }}
+            </td>
+
+            <td>
+              {{ item.name }}
+            </td>
+
+            <td>
+              {{ item.option }}
+            </td>
+
+            <td>
+              <span class="status-badge status-{{ item.rawStatus | lower }}">
+                {{ item.status }}
+              </span>
+            </td>
+
+            <td>
+              {{ item.createdAt }}
+            </td>
+
+            <td>
+              <a
+                class="detail-btn link-button"
+                href="{{ url_for('admin.request_detail', request_id=item.id) }}"
+              >
+                상세보기
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+
+          <tr id="noFilteredResultRow" style="display: none;">
+            <td colspan="6" class="empty-table-message">
+              검색 조건에 맞는 제작 요청이 없습니다.
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="6" class="empty-table-message">
+              등록된 제작 요청이 없습니다.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const statusFilter = document.getElementById("statusFilter");
+  const requestSearchInput = document.getElementById("requestSearchInput");
+  const filterResetButton = document.getElementById("filterResetButton");
+  const requestRows = Array.from(document.querySelectorAll(".request-row"));
+  const noFilteredResultRow = document.getElementById("noFilteredResultRow");
+  const visibleRequestCount = document.getElementById("visibleRequestCount");
+  const totalRequestCount = document.getElementById("totalRequestCount");
+  const activeFilterText = document.getElementById("activeFilterText");
+
+  const statusTextMap = {
+    ALL: "전체",
+    SUBMITTED: "접수 완료",
+    REVIEWING: "검토 중",
+    APPROVED: "제작 승인",
+    WAITING: "제작 대기",
+    DRAWING: "로봇 드로잉 중",
+    COMPLETED: "제작 완료",
+    REJECTED: "제작 불가",
+    ERROR: "오류 발생",
+  };
+
+  function normalizeText(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function updateRequestFilter() {
+    const selectedStatus = statusFilter ? statusFilter.value : "ALL";
+    const searchKeyword = normalizeText(requestSearchInput ? requestSearchInput.value : "");
+
+    let visibleCount = 0;
+
+    requestRows.forEach((row) => {
+      const rowStatus = row.dataset.status || "";
+      const rowSearchText = normalizeText(row.dataset.search);
+
+      const statusMatched =
+        selectedStatus === "ALL" || rowStatus === selectedStatus;
+
+      const keywordMatched =
+        searchKeyword === "" || rowSearchText.includes(searchKeyword);
+
+      const shouldShow = statusMatched && keywordMatched;
+
+      row.style.display = shouldShow ? "" : "none";
+
+      if (shouldShow) {
+        visibleCount += 1;
+      }
+    });
+
+    if (noFilteredResultRow) {
+      noFilteredResultRow.style.display =
+        requestRows.length > 0 && visibleCount === 0 ? "" : "none";
+    }
+
+    if (visibleRequestCount) {
+      visibleRequestCount.textContent = visibleCount;
+    }
+
+    if (totalRequestCount) {
+      totalRequestCount.textContent = requestRows.length;
+    }
+
+    if (activeFilterText) {
+      const selectedStatusText = statusTextMap[selectedStatus] || selectedStatus;
+
+      if (selectedStatus === "ALL" && searchKeyword === "") {
+        activeFilterText.textContent = "전체 요청 표시 중";
+      } else if (selectedStatus !== "ALL" && searchKeyword === "") {
+        activeFilterText.textContent = `"${selectedStatusText}" 상태만 표시 중`;
+      } else if (selectedStatus === "ALL" && searchKeyword !== "") {
+        activeFilterText.textContent = `"${searchKeyword}" 검색 결과 표시 중`;
+      } else {
+        activeFilterText.textContent =
+          `"${selectedStatusText}" 상태 + "${searchKeyword}" 검색 결과 표시 중`;
+      }
+    }
+  }
+
+  if (statusFilter) {
+    statusFilter.addEventListener("change", updateRequestFilter);
+  }
+
+  if (requestSearchInput) {
+    requestSearchInput.addEventListener("input", updateRequestFilter);
+  }
+
+  if (filterResetButton) {
+    filterResetButton.addEventListener("click", () => {
+      if (statusFilter) {
+        statusFilter.value = "ALL";
+      }
+
+      if (requestSearchInput) {
+        requestSearchInput.value = "";
+      }
+
+      updateRequestFilter();
+    });
+  }
+
+  updateRequestFilter();
+</script>
+{% endblock %}
